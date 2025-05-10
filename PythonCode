@@ -1,0 +1,51 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load test data
+df = pd.read_csv("C:/Users/azman/Downloads/modem_test_data.csv")
+
+# Inspect dataset
+print("Data preview:")
+print(df.head())
+
+# Columns: 'ModemID', 'Voltage', 'SNR', 'Jitter', 'BER'
+
+# Calculate basic statistics
+stats = df.describe()
+print("\nStatistical Summary:\n", stats)
+
+# Histogram of key metrics
+metrics = ['Voltage', 'SNR', 'Jitter', 'BER']
+for metric in metrics:
+    plt.figure()
+    df[metric].hist(bins=30)
+    plt.title(f'{metric} Distribution')
+    plt.xlabel(metric)
+    plt.ylabel("Frequency")
+    plt.grid(True)
+    plt.show()
+
+# Adaptive Limit Setting using IQR
+def adaptive_limits(series, multiplier=1.5):
+    Q1 = series.quantile(0.25)
+    Q3 = series.quantile(0.75)
+    IQR = Q3 - Q1
+    lower_limit = Q1 - multiplier * IQR
+    upper_limit = Q3 + multiplier * IQR
+    return lower_limit, upper_limit
+
+# Flag out-of-bound values
+def flag_outliers(series, name):
+    low, high = adaptive_limits(series)
+    outliers = (series < low) | (series > high)
+    print(f"{name} - Outliers: {outliers.sum()} / {len(series)}")
+    return outliers
+
+# Apply adaptive thresholding
+for metric in metrics:
+    df[f"{metric}_Outlier"] = flag_outliers(df[metric], metric)
+
+# Save flagged dataset
+df.to_csv("flagged_test_data.csv", index=False)
+print("Flagged dataset saved to 'flagged_test_data.csv'.")
