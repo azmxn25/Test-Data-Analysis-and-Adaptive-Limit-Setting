@@ -1,0 +1,21 @@
+data = readtable('C:\Users\azman\Downloads\modem_test_data.csv');
+metrics = {'Voltage', 'SNR', 'Jitter', 'BER'};
+
+for i = 1:length(metrics)
+    metric = data.(metrics{i});
+    Q1 = quantile(metric, 0.25);
+    Q3 = quantile(metric, 0.75);
+    IQR = Q3 - Q1;
+    lower = Q1 - 1.5 * IQR;
+    upper = Q3 + 1.5 * IQR;
+
+    figure;
+    histogram(metric);
+    title([metrics{i} ' Distribution']);
+    xlabel(metrics{i});
+    ylabel('Frequency');
+    hold on;
+    xline(lower, 'r--', 'Lower Limit');
+    xline(upper, 'r--', 'Upper Limit');
+    hold off;
+end
